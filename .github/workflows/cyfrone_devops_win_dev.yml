@@ -1,0 +1,35 @@
+name: Deploy to Azure Windows App Service
+
+on:
+  push:
+    branches:
+      - dev  # Trigger on push to dev branch
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'  # Change if you're using .NET 6/7
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish project
+      run: dotnet publish --configuration Release --output ./publish
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: cyfronetrialdev  # <-- 🔁 Replace this with your App Service name
+        publish-profile: ${{ secrets.CYFRONE_DEVBRANCH_WIN_PUBLISHPROFILE }}
+        package: ./publish
